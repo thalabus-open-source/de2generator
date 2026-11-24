@@ -1,0 +1,1 @@
+This folder contains a simple chatbot client application that interacts with a LLM through the de2generator service.
