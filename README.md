@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ```bash
 # Local development
 python src/de2generator.py
-python src/de2generator.py --vllm-url http://192.168.30.31:8081   # override the backend
+python src/de2generator.py --vllm-url http://localhost:8081   # override the backend
 
 # Docker
 docker build -t de2generator:latest .
@@ -210,7 +210,7 @@ built-in defaults live in `src/core/constants.py`. Precedence is
 ```json
 {
   "vllm": {
-    "base_url": "http://192.168.30.31:8081",
+    "base_url": "http://localhost:8081",
     "prefill_timeout_seconds": 600,
     "stream_stall_timeout_seconds": 300
   },

@@ -30,7 +30,7 @@ THINKING_LOOP_MAX_REPEATS: int = int(get_config_value("detection.thinking_loop.m
 
 # Semantic Progress Detector
 SEMANTIC_LLM_ENABLED: bool = bool(get_config_value("semantic_llm.enabled", "SEMANTIC_LLM_ENABLED", default=True))  # type: ignore
-SEMANTIC_VERIFIER_ENDPOINT: str = str(get_config_value("semantic_llm.endpoint", "SEMANTIC_VERIFIER_ENDPOINT", default="http://192.168.30.31:8350/v1/chat/completions"))  # type: ignore
+SEMANTIC_VERIFIER_ENDPOINT: str = str(get_config_value("semantic_llm.endpoint", "SEMANTIC_VERIFIER_ENDPOINT", default="http://localhost:8350/v1/chat/completions"))  # type: ignore
 SEMANTIC_VERIFIER_MODEL: str = str(get_config_value("semantic_llm.model", "SEMANTIC_VERIFIER_MODEL", default="surogate/Qwen3.5-2B-FP8"))  # type: ignore
 SEMANTIC_VERIFIER_TIMEOUT: float = float(get_config_value("semantic_llm.timeout_seconds", "SEMANTIC_VERIFIER_TIMEOUT", default=5.0))  # type: ignore
 SEMANTIC_MIN_BLOCK_CHARS: int = int(get_config_value("semantic_llm.min_block_chars", default=100))  # type: ignore

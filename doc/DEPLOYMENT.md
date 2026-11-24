@@ -16,7 +16,7 @@ de²generator is deployed as a containerized service between Thalabus and the LL
   demonstration instances on `thalabus-ai-1` and `thalabus-ai-2` — reaches the LLM gateway
   (LiteLLM / gateway-llm-lite) **through de²generator** rather than directly. It is on the
   hot path, not an optional extra, despite what the compose header implies.
-- **Upstream:** `vllm.base_url` in `config.json` is `http://192.168.30.31:8081`, i.e. the
+- **Upstream:** `vllm.base_url` in `config.json` is `http://localhost:8081`, i.e. the
   LiteLLM gateway on the AI subnet (the same base URL the hub uses). Under Compose,
   `docker-compose.yml` sets `VLLM_BASE_URL` as an environment default, and env **wins over**
   config — so a plain `docker compose up` targets `http://127.0.0.1:8081` (the gateway on

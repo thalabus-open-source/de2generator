@@ -270,10 +270,10 @@ Serves frontend configuration (read-only subset).
 **Response:**
 ```json
 {
-  "model_endpoint": "http://192.168.30.110:8000/v1/chat/completions",
+  "model_endpoint": "http://localhost:8000/v1/chat/completions",
   "semantic_llm": {
     "enabled": true,
-    "endpoint": "http://192.168.30.31:8350/v1/chat/completions"
+    "endpoint": "http://localhost:8350/v1/chat/completions"
   },
   "detection": {
     "entropy": {
@@ -405,7 +405,7 @@ data: {"type": "interaction_complete", "data": {"request_id": "...", "status": "
 ```json
 {
   "error": {
-    "message": "Cannot reach vLLM at http://192.168.30.110:8000",
+    "message": "Cannot reach vLLM at http://localhost:8000",
     "type": "connection_error"
   }
 }

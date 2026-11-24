@@ -12,10 +12,10 @@ on 2026-11-14.
 
 ```json
 {
-  "model_endpoint": "http://192.168.30.110:8000/v1/chat/completions",
+  "model_endpoint": "http://localhost:8000/v1/chat/completions",
   "semantic_llm": {
     "enabled": true,
-    "endpoint": "http://192.168.30.31:8350/v1/chat/completions",
+    "endpoint": "http://localhost:8350/v1/chat/completions",
     "model": "surogate/Qwen3.5-2B-FP8",
     "timeout_seconds": 5.0
   },
@@ -74,7 +74,7 @@ Configures the optional semantic quality verifier LLM.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `enabled` | bool | `true` | Enable semantic verification (env: `SEMANTIC_LLM_ENABLED`) |
-| `endpoint` | string | `http://192.168.30.31:8350/v1/chat/completions` | Semantic verifier endpoint (env: `SEMANTIC_VERIFIER_ENDPOINT`) |
+| `endpoint` | string | `http://localhost:8350/v1/chat/completions` | Semantic verifier endpoint (env: `SEMANTIC_VERIFIER_ENDPOINT`) |
 | `model` | string | `surogate/Qwen3.5-2B-FP8` | Model name on verifier (env: `SEMANTIC_VERIFIER_MODEL`) |
 | `timeout_seconds` | float | `5.0` | Request timeout (env: `SEMANTIC_VERIFIER_TIMEOUT`) |
 | `max_model_len` | int | `0` | Verifier context window in tokens; `0` = never truncate (env: `SEMANTIC_MAX_MODEL_LEN`) |
@@ -261,7 +261,7 @@ DE2_SSL_CERT=/path/to/cert.crt  # config: server.ssl_cert_path
 DE2_SSL_KEY=/path/to/key.key    # config: server.ssl_key_path
 
 # Upstream backend (base URL only — no /v1/... suffix)
-VLLM_BASE_URL=http://192.168.30.31:8081
+VLLM_BASE_URL=http://localhost:8081
 
 # Semantic verifier
 SEMANTIC_LLM_ENABLED=true

@@ -16,7 +16,7 @@
     "min_failing_categories": 2
   },
   "vllm": {
-    "base_url": "http://192.168.30.31:8081",
+    "base_url": "http://localhost:8081",
     "prefill_timeout_seconds": 600,
     "stream_stall_timeout_seconds": 300
   },
@@ -43,7 +43,7 @@
   },
   "translation": {
     "enabled": false,
-    "endpoint": "http://192.168.30.33:8351/v1/chat/completions",
+    "endpoint": "http://localhost:8351/v1/chat/completions",
     "model": "tencent/Hy-MT2-7B-FP8",
     "timeout_seconds": 15,
     "thalabus": {
