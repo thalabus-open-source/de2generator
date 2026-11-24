@@ -1,0 +1,15 @@
+# The image copies only requirements.txt and src/, so everything else here is
+# context that has to be shipped to the daemon for nothing. logs/ in particular
+# holds interaction logs and the dashboard's token history, and it is now a bind
+# mount at runtime — it must never be baked into an image.
+.git
+.gitignore
+.dockerignore
+logs/
+doc/
+README.md
+docker-compose.yml
+Documentation/
+__pycache__/
+*.pyc
+.env

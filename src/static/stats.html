@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>de²generator — Token statistics</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/ui/style.css">
+  <style>
+    .stats-wrap{max-width:1100px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+    .stats-cards{display:flex;gap:12px;flex-wrap:wrap}
+    .stats-card{flex:1 1 200px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+    .stats-card .lbl{font-size:.68rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+    .stats-card .val{font-size:1.35rem;font-weight:700}
+    .stats-card .val.green{color:var(--ok)}
+    .stats-card .val.blue{color:var(--thinking)}
+    .stats-card .val.yellow{color:var(--reject)}
+    .chart-box{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+    .chart-title{font-size:.8rem;font-weight:700;margin-bottom:4px}
+    .chart-sub{font-size:.7rem;color:var(--text-dim);margin-bottom:12px}
+    .chart{display:flex;align-items:flex-end;gap:1px;height:180px;border-bottom:1px solid var(--border);padding-bottom:0}
+    .chart .col{flex:1 1 0;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+    .chart .seg{width:100%;min-height:1px}
+    .seg.answer{background:var(--ok)}
+    .seg.reasoning{background:var(--thinking)}
+    .seg.input{background:var(--reject)}
+    .chart .col.empty .seg{background:var(--border)}
+    .chart-axis{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text-dim);margin-top:6px}
+    .legend{display:flex;gap:16px;margin-top:10px;font-size:.72rem;color:var(--text-dim)}
+    .legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+    table.hourly{width:100%;border-collapse:collapse;font-size:.78rem;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+    table.hourly th,table.hourly td{padding:7px 12px;border-top:1px solid var(--border);text-align:right;white-space:nowrap}
+    table.hourly thead th{font-size:.65rem;text-transform:uppercase;letter-spacing:.3px;color:var(--text-dim);border-top:none;background:var(--bg-card-hdr)}
+    table.hourly th:first-child,table.hourly td:first-child{text-align:left}
+    table.hourly td.num{font-family:monospace}
+    .no-data{text-align:center;padding:40px;color:var(--text-dim)}
+    .hdr-left a{color:var(--link-color);text-decoration:none;font-size:.85rem}
+    .hdr-left a:hover{color:var(--link-hover)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hdr-left">
+      <h1>de&sup2;generator</h1>
+      <a href="/ui">← back to monitor</a>
+      <span class="sub">Hourly token statistics</span>
+    </div>
+    <div class="hdr-right">
+      <button id="refresh-btn" onclick="loadStats()">⟳ refresh</button>
+      <button id="theme-btn" onclick="toggleTheme()">☼ Light</button>
+    </div>
+  </header>
+  <div class="stats-wrap">
+    <div class="stats-cards" id="summary-cards"></div>
+    <div class="chart-box">
+      <div class="chart-title">Tokens per hour (latest <span id="window-size">240</span> hours)</div>
+      <div class="chart-sub">Reasoning and answer values are estimates split from the exact total output reported by the LLM backend.</div>
+      <div class="chart" id="chart"></div>
+      <div class="chart-axis"><span id="axis-left"></span><span id="axis-right"></span></div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--reject)"></span>Input</span>
+        <span><span class="sw" style="background:var(--thinking)"></span>Reasoning (est)</span>
+        <span><span class="sw" style="background:var(--ok)"></span>Answer (est)</span>
+      </div>
+    </div>
+    <div id="table-box"></div>
+  </div>
+  <script>
+    // ── Theme (shared key with the monitor page) ────────────────────────────
+    function applyTheme() {
+      const t = localStorage.getItem('de2-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      const btn = document.getElementById('theme-btn');
+      if (btn) btn.innerHTML = t === 'dark' ? '☼ Light' : '☾ Dark';
+    }
+    function toggleTheme() {
+      const t = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('de2-theme', t);
+      applyTheme();
+    }
+    applyTheme();
+
+    // ── Formatting helpers ───────────────────────────────────────────────────
+    function fmtNum(n) { return (n || 0).toLocaleString('en-US'); }
+    function fmtHour(epoch) {
+      return new Date(epoch * 3600 * 1000).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: '2-digit', hour12: false
+      });
+    }
+    function fmtHourFull(epoch) {
+      return new Date(epoch * 3600 * 1000).toLocaleString(undefined, {
+        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false
+      });
+    }
+
+    function summaryCard(label, value, cls) {
+      return `<div class="stats-card"><div class="lbl">${label}</div><div class="val ${cls || ''}">${value}</div></div>`;
+    }
+
+    function renderSummary(data) {
+      const t = data.totals || {};
+      const w = data.window_totals || {};
+      document.getElementById('window-size').textContent = data.window_hours || 240;
+      document.getElementById('summary-cards').innerHTML =
+          summaryCard('Requests (all time)', fmtNum(t.requests))
+        + summaryCard('Input (all time)', fmtNum(t.input) + 't', 'yellow')
+        + summaryCard('Reasoning est (all time)', fmtNum(t.reasoning) + 't', 'blue')
+        + summaryCard('Answer est (all time)', fmtNum(t.answer) + 't', 'green')
+        + summaryCard('Input (in window)', fmtNum(w.input) + 't', 'yellow')
+        + summaryCard('Reasoning est (in window)', fmtNum(w.reasoning) + 't', 'blue')
+        + summaryCard('Answer est (in window)', fmtNum(w.answer) + 't', 'green');
+    }
+
+    function renderChart(data) {
+      const hours = data.hours || [];
+      const byHour = {};
+      for (const h of hours) byHour[h.hour] = h;
+      const windowSize = data.window_hours || 240;
+      const nowHour = Math.floor(Date.now() / 3600000);
+      const buckets = [];
+      for (let i = windowSize - 1; i >= 0; i--) {
+        const hour = nowHour - i;
+        buckets.push(byHour[hour] || { hour, input: 0, reasoning: 0, answer: 0, requests: 0 });
+      }
+      const maxTotal = Math.max(1, ...buckets.map(b => b.input + b.reasoning + b.answer));
+      const chart = document.getElementById('chart');
+      chart.innerHTML = buckets.map(b => {
+        const total = b.input + b.reasoning + b.answer;
+        const pctH = total > 0 ? Math.max(2, 100 * total / maxTotal) : 0.4;
+        const segHtml = total > 0
+          ? ['answer', 'reasoning', 'input'].map(k =>
+              `<div class="seg ${k}" style="height:${(b[k] / total * pctH).toFixed(3)}%"></div>`).join('')
+          : `<div class="seg" style="height:0.4%"></div>`;
+        const title = `${fmtHourFull(b.hour)}\n` +
+          `Requests: ${b.requests}\nInput: ${fmtNum(b.input)}t\n` +
+          `Reasoning (est): ${fmtNum(b.reasoning)}t\nAnswer (est): ${fmtNum(b.answer)}t`;
+        return `<div class="col${total === 0 ? ' empty' : ''}" title="${title}">${segHtml}</div>`;
+      }).join('');
+      document.getElementById('axis-left').textContent = fmtHour(nowHour - windowSize + 1);
+      document.getElementById('axis-right').textContent = fmtHour(nowHour) + ' (now)';
+    }
+
+    function renderTable(data) {
+      const hours = (data.hours || []).slice().sort((a, b) => b.hour - a.hour).filter(h =>
+        (h.input + h.reasoning + h.answer) > 0);
+      const box = document.getElementById('table-box');
+      if (hours.length === 0) {
+        box.innerHTML = '<div class="no-data">No token usage recorded in the retention window.</div>';
+        return;
+      }
+      const rows = hours.map(h => `<tr>`
+        + `<td>${fmtHourFull(h.hour)}</td>`
+        + `<td class="num">${fmtNum(h.requests)}</td>`
+        + `<td class="num">${fmtNum(h.input)}t</td>`
+        + `<td class="num">${fmtNum(h.reasoning)}t</td>`
+        + `<td class="num">${fmtNum(h.answer)}t</td>`
+        + `<td class="num">${fmtNum(h.reasoning + h.answer)}t</td>`
+        + `</tr>`).join('');
+      box.innerHTML = `<table class="hourly"><thead><tr>`
+        + `<th>Hour (local)</th><th>Requests</th><th>Input</th><th>Reasoning est</th><th>Answer est</th><th>Output</th>`
+        + `</tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    async function loadStats() {
+      try {
+        const resp = await fetch('/ui/stats/hourly');
+        const data = await resp.json();
+        renderSummary(data);
+        renderChart(data);
+        renderTable(data);
+      } catch (err) {
+        document.getElementById('table-box').innerHTML =
+          `<div class="no-data">Failed to load statistics: ${err}</div>`;
+      }
+    }
+    loadStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+# Optional de²generator service for token degeneration recovery
+# 
+# This is NOT part of the standard Thalabus distribution.
+# Use only when token degeneration monitoring is required.
+#
+# Usage:
+#   # Start de²generator alongside main stack
+#   docker-compose -f docker-compose.yml -f docker-compose.de2generator.yml up -d
+#
+#   # Or start de²generator independently
+#   docker-compose -f docker-compose.de2generator.yml up -d
+
+name: thalabus_de2generator
+
+services:
+  de2generator:
+    image: "thalabus/de2generator:latest"
+    container_name: compose_de2generator
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - DE2_HOST=0.0.0.0
+      - DE2_PORT=8356
+      # Overridable so Linux hosts can point at a real backend, e.g.
+      #   VLLM_BASE_URL=http://127.0.0.1:8352 docker compose up -d
+      # (host.docker.internal only resolves on Docker Desktop; note that this env
+      # var takes precedence over vllm.base_url in config.json)
+      - VLLM_BASE_URL=${VLLM_BASE_URL:-http://127.0.0.1:8081}
+    network_mode: host
+    volumes:
+      # Mount config.json to allow hot configuration updates without rebuilding
+      - ./config.json:/app/config.json:ro
+      # Interaction logs and the dashboard's hourly token history live in the app's
+      # cwd/logs. Without this mount every `up -d --force-recreate` silently wipes
+      # them (they live in the container's writable layer), so they are mounted
+      # rather than backed up by hand.
+      - ./logs/prod:/app/logs
+    healthcheck:
+      # Liveness only, on purpose. /v1/models is proxied, so probing it makes the
+      # container "unhealthy" whenever the *backend* is down — an orchestrator can
+      # restart a dead proxy but cannot fix a dead backend, and restarting the
+      # supervisor for a child's failure would replace a clean 502 with downtime.
+      # It can also never pass: the gateway answers 401 to an unauthenticated
+      # /v1/models. Backend state is reported by /health/upstream and shown on the
+      # dashboard instead. Note: no curl in python:3.13-alpine, hence httpx.
+      test: ["CMD", "/bin/sh", "-c", "python -c \"import httpx,sys; sys.exit(0 if httpx.get('http://localhost:8356/health', timeout=5).status_code == 200 else 1)\""]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s

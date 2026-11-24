@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>de²generator</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/ui/style.css">
+</head>
+<body>
+  <header>
+    <div class="hdr-left">
+      <h1>de&sup2;generator</h1>
+      <span class="sub">Generation Supervisor</span>
+    </div>
+    <div class="hdr-right">
+      <span id="totals-pill" title="Accumulated tokens since last clear (input, reasoning est., answer est.). Click to open hourly statistics (last 240 hours).">0<span class="token-value">t</span></span>
+      <span id="live-pill" class="idle" title="Sessions currently generating">● 0 live</span>
+      <span id="conn" class="err">• disconnected</span>
+      <button id="lp-toggle" class="lp-off" type="button">◌ logprobs</button>
+      <a id="clear-btn" href="#" onclick="clearDone(); return false">clear</a>
+      <select id="translation-selector" onchange="updateTranslation(this.value)">
+        <option value="disabled">Force Translation: disabled</option>
+        <option value="IT">Force Translation: IT</option>
+        <option value="FR">Force Translation: FR</option>
+        <option value="DE">Force Translation: DE</option>
+      </select>
+      <button id="theme-btn" onclick="toggleTheme()">☼ Light</button>
+    </div>
+  </header>
+  <div id="ui-disabled-message">
+    UI IS DISABLED BY CONFIGURATION
+  </div>
+  <div id="panel">
+    <div id="empty">Waiting for LLM requests…</div>
+  </div>
+  <script type="module" src="/ui/app.js"></script>
+</body>
+</html>

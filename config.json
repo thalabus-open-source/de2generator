@@ -1,0 +1,65 @@
+{
+  "thinking": {
+    "chars_per_token": 4,
+    "cooldown_duration_seconds": 300,
+    "budget_exhaustion_threshold": 1.2
+  },
+  "semantic_llm": {
+    "enabled": true,
+    "endpoint": "http://localhost:8350/v1/chat/completions",
+    "model": "surogate/Qwen3.5-2B-FP8",
+    "timeout_seconds": 5.0,
+    "max_model_len": 1024,
+    "max_answer_tokens": 200,
+    "safety_buffer_tokens": 64,
+    "min_block_chars": 100,
+    "min_failing_categories": 2
+  },
+  "vllm": {
+    "base_url": "http://192.168.30.31:8081",
+    "prefill_timeout_seconds": 600,
+    "stream_stall_timeout_seconds": 300
+  },
+  "detection": {
+    "repetition": {
+      "window_tokens": 100,
+      "critical_score": 40,
+      "warning_score": 70
+    },
+    "entropy": {
+      "min_healthy": 3.5,
+      "max_healthy": 7.0,
+      "min_chars": 100
+    },
+    "thinking_loop": {
+      "min_chars": 40,
+      "max_repeats": 3
+    }
+  },
+  "recovery": {
+    "max_attempts": 3,
+    "max_full_restarts": 2,
+    "plain_text_checkpoint_interval": 250
+  },
+  "translation": {
+    "enabled": false,
+    "endpoint": "http://192.168.30.33:8351/v1/chat/completions",
+    "model": "tencent/Hy-MT2-7B-FP8",
+    "timeout_seconds": 15,
+    "thalabus": {
+      "enable_only_for_agents": ["AgentAssistant"]
+    }
+  },
+  "ui": {
+    "enabled": true,
+    "max_history": 100,
+    "show_content": true
+  },
+  "server": {
+    "protocol": "http",
+    "host": "0.0.0.0",
+    "port": 8356,
+    "ssl_cert_path": "",
+    "ssl_key_path": ""
+  }
+}
