@@ -2,8 +2,11 @@
 
 ## Projekt
 de²generator (t2b AG) ist ein OpenAI-kompatibler Proxy vor dem LLM.
-Dieser Branch ergänzt einen minimalen Client (Bachelorarbeit).
-Kette: Client → de²generator → LiteLLM → Modell.
+Dieser Branch ergänzt einen Client mit Tool-Schleife, einen lokalen Tool-Dienst und eine
+Mini-RAG (Bachelorarbeit).
+Modus „chat“: Client → de²generator → LiteLLM → Modell.
+Modus „tools“: Client → LiteLLM direkt; Tool-Aufrufe gehen an den Tool-Dienst,
+Protokoll in tools/PROTOCOL.md.
 Repo ist öffentlich: keine Interna, Namen, Hosts, Ausfälle oder Umgebungsdetails in
 versionierten Dateien. Arbeitsplan und Statuslog liegen im privaten Thesis-Repo unter
 notes/de2generator-plan.md. Vor jeder Arbeit lesen.
@@ -16,8 +19,8 @@ notes/de2generator-plan.md. Vor jeder Arbeit lesen.
 - Nicht ausgeführte Prüfungen ausdrücklich nennen.
 
 ## Grenzen
-- t2b-Code nur mit Freigabe ändern (alles außer neuen Dateien in client/ und
-  CLAUDE.md). Auffälligkeiten melden, nicht beheben.
+- t2b-Code nur mit Freigabe ändern (alles außer neuen Dateien in client/, tools/,
+  prompts/, data/ und CLAUDE.md). Auffälligkeiten melden, nicht beheben.
 - Keine LLM-Requests ohne Freigabe. Das gilt auch für /health/upstream und
   /v1/models gegen einen echten Endpunkt. Standard ist der Mock.
 
@@ -32,6 +35,8 @@ notes/de2generator-plan.md. Vor jeder Arbeit lesen.
 - Nie dev oder main pushen. Kein Force-Push.
 - Vor jedem Commit: git status und git diff --cached --stat prüfen; nie Config-, Key-
   oder .env-Dateien stagen.
+- Neue Ordner bekommen eine eigene .gitignore für Index, Modelle und Mitschnitte; die
+  .gitignore von t2b bleibt unverändert.
 - Commit: Betreff im Imperativ (max. ~60 Zeichen), Leerzeile,
   2–5 Stichpunkte, kein Co-Authored-By.
 
@@ -40,10 +45,15 @@ notes/de2generator-plan.md. Vor jeder Arbeit lesen.
 - Statuslog nicht hier, sondern in notes/de2generator-plan.md im privaten Thesis-Repo:
   JJJJ-MM-TT HH:MM (Europe/Berlin) | Schritt | Ergebnis | Commit
 - Thesis-relevante Beobachtungen als fertige Zeilen vorschlagen.
-  Die Thesis-Notizen liegen im PoC-Repo, nicht hier.
+  Die Thesis-Notizen liegen im privaten Thesis-Repo, nicht hier.
 
 ## Technik
 - Nativ mit .venv (py -3.13), kein Docker. Start aus dem Repo-Root.
 - Nur localhost: Server an 127.0.0.1 (DE2_HOST=127.0.0.1).
 - PYTHONUTF8=1, VLLM_BASE_URL ohne /v1 und ohne End-Slash.
 - Unter Windows Mock und Server in zwei Terminals statt debug_stack.py.
+- Abhängigkeiten der neuen Teile in tools/requirements.txt; requirements.txt bleibt unverändert.
+- Tests mit pytest in der .venv.
+- Tool-Dienst nur an 127.0.0.1:8357. Chroma-Telemetrie aus.
+- Modus „tools“: Gateway-Adresse zur Laufzeit aus config/llm_config.json, CA-Bundle bei
+  Bedarf über SSL_CERT_FILE.
