@@ -4,7 +4,9 @@
 de²generator (t2b AG) ist ein OpenAI-kompatibler Proxy vor dem LLM.
 Dieser Branch ergänzt einen minimalen Client (Bachelorarbeit).
 Kette: Client → de²generator → LiteLLM → Modell.
-Plan und Status stehen in doc/plan.md. Vor jeder Arbeit lesen.
+Repo ist öffentlich: keine Interna, Namen, Hosts, Ausfälle oder Umgebungsdetails in
+versionierten Dateien. Arbeitsplan und Statuslog liegen im privaten Thesis-Repo unter
+notes/de2generator-plan.md. Vor jeder Arbeit lesen.
 
 ## Arbeitsweise
 - Zu Beginn jeder Session: git fetch; neue Commits auf origin/dev melden, nie ohne
@@ -14,8 +16,8 @@ Plan und Status stehen in doc/plan.md. Vor jeder Arbeit lesen.
 - Nicht ausgeführte Prüfungen ausdrücklich nennen.
 
 ## Grenzen
-- t2b-Code nur mit Freigabe ändern (alles außer neuen Dateien in client/,
-  CLAUDE.md und doc/plan.md). Auffälligkeiten melden, nicht beheben.
+- t2b-Code nur mit Freigabe ändern (alles außer neuen Dateien in client/ und
+  CLAUDE.md). Auffälligkeiten melden, nicht beheben.
 - Keine LLM-Requests ohne Freigabe. Das gilt auch für /health/upstream und
   /v1/models gegen einen echten Endpunkt. Standard ist der Mock.
 
@@ -35,7 +37,8 @@ Plan und Status stehen in doc/plan.md. Vor jeder Arbeit lesen.
 
 ## Dokumentation
 - Sprache: Doku und Code-Kommentare Deutsch, Commit-Betreff englisch im Imperativ.
-- Statuslog in doc/plan.md: JJJJ-MM-TT HH:MM (Europe/Berlin) | Schritt | Ergebnis | Commit
+- Statuslog nicht hier, sondern in notes/de2generator-plan.md im privaten Thesis-Repo:
+  JJJJ-MM-TT HH:MM (Europe/Berlin) | Schritt | Ergebnis | Commit
 - Thesis-relevante Beobachtungen als fertige Zeilen vorschlagen.
   Die Thesis-Notizen liegen im PoC-Repo, nicht hier.
 
